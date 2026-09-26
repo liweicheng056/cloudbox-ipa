@@ -31,6 +31,7 @@ jobs:
             -framework UIKit -framework AVFoundation -framework MediaPlayer \
             -framework UniformTypeIdentifiers -framework CoreMedia -framework Foundation \
             main.swift AppDelegate.swift CloudViewController.swift MusicViewController.swift \
+            LanCloudViewController.swift WebDAVViewController.swift \
             -o build/CloudBox
           file build/CloudBox
 

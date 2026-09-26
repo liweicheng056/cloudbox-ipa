@@ -59,10 +59,11 @@ final class MusicViewController: UIViewController,
     private func setupUI() {
         title = "音乐"
         view.backgroundColor = .systemBackground
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            title: "导入", style: .plain, target: self, action: #selector(importTapped))
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            title: "词", style: .plain, target: self, action: #selector(toggleLyrics))
+        // 左侧留给系统返回键（‹ 云盘），按钮全放右边
+        navigationItem.rightBarButtonItems = [
+            UIBarButtonItem(title: "导入", style: .plain, target: self, action: #selector(importTapped)),
+            UIBarButtonItem(title: "词", style: .plain, target: self, action: #selector(toggleLyrics)),
+        ]
 
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
@@ -233,7 +234,7 @@ final class MusicViewController: UIViewController,
     }
 
     @objc private func importTapped() {
-        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.audio])
+        let picker = UIDocumentPickerViewController(documentTypes: ["public.audio"], in: .import)
         picker.delegate = self
         picker.allowsMultipleSelection = true
         present(picker, animated: true)

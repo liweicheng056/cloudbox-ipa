@@ -72,6 +72,8 @@ final class CloudViewController: UIViewController,
             UIBarButtonItem(title: "音乐", style: .plain, target: self, action: #selector(openMusic)),
             UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(importTapped)),
         ]
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            title: "远程", style: .plain, target: self, action: #selector(remoteTapped))
 
         infoBar.translatesAutoresizingMaskIntoConstraints = false
         infoBar.backgroundColor = .secondarySystemBackground
@@ -264,9 +266,26 @@ final class CloudViewController: UIViewController,
         searchBar.resignFirstResponder()
     }
 
+    // MARK: - 远程入口（电脑云盘 / WebDAV 网盘）
+    @objc private func remoteTapped() {
+        let sheet = UIAlertController(title: "远程存储", message: "文件不占手机空间", preferredStyle: .actionSheet)
+        sheet.addAction(UIAlertAction(title: "电脑云盘（家里 WiFi，容量=电脑硬盘）", style: .default) { _ in
+            self.navigationController?.pushViewController(LanCloudViewController(), animated: true)
+        })
+        sheet.addAction(UIAlertAction(title: "WebDAV 网盘（坚果云等，随处可用）", style: .default) { _ in
+            self.navigationController?.pushViewController(WebDAVViewController(), animated: true)
+        })
+        sheet.addAction(UIAlertAction(title: "取消", style: .cancel))
+        if let pop = sheet.popoverPresentationController {
+            pop.barButtonItem = navigationItem.leftBarButtonItem
+        }
+        present(sheet, animated: true)
+    }
+
     // MARK: - import (文件 App 导入)
     @objc private func importTapped() {
-        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.item, UTType.data, UTType.content])
+        // 经典 API + 导入模式：全 iOS 版本都能打开、所有文件可选
+        let picker = UIDocumentPickerViewController(documentTypes: ["public.data"], in: .import)
         picker.delegate = self
         picker.allowsMultipleSelection = true
         present(picker, animated: true)
