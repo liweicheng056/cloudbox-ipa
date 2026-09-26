@@ -1,0 +1,66 @@
+name: iOS Build (unsigned IPA) - 云盘 CloudBox
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-14
+    env:
+      PROJECT_NAME: CloudBox
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcrun swiftc --version
+          xcrun --sdk iphoneos --show-sdk-path
+
+      - name: Compile Swift executable (arm64, iphoneos)
+        run: |
+          set -e
+          mkdir -p build
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          xcrun swiftc \
+            -sdk "$SDK" \
+            -target arm64-apple-ios14.0 \
+            -O \
+            -Xlinker -rpath -Xlinker /usr/lib/swift \
+            -framework UIKit -framework AVFoundation -framework MediaPlayer \
+            -framework UniformTypeIdentifiers -framework CoreMedia -framework Foundation \
+            main.swift AppDelegate.swift CloudViewController.swift MusicViewController.swift \
+            -o build/CloudBox
+          file build/CloudBox
+
+      - name: Assemble .app bundle
+        run: |
+          set -e
+          mkdir -p build/Payload/CloudBox.app
+          cp build/CloudBox build/Payload/CloudBox.app/CloudBox
+          cp Info.plist build/Payload/CloudBox.app/Info.plist
+          # 内置歌曲（沿用音乐盒的 6 首，开箱即播）
+          if [ -d songs ]; then
+            cp -R songs build/Payload/CloudBox.app/songs
+          fi
+          # 播放器背景图
+          if [ -f bg.jpg ]; then
+            cp bg.jpg build/Payload/CloudBox.app/bg.jpg
+          fi
+          codesign -f -s - --deep build/Payload/CloudBox.app
+          ls -lh build/Payload/CloudBox.app
+
+      - name: Package unsigned IPA
+        run: |
+          set -e
+          cd build
+          zip -qry "${PROJECT_NAME}-unsigned.ipa" Payload
+          ls -lh "${PROJECT_NAME}-unsigned.ipa"
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-ipa
+          path: build/*.ipa
+          retention-days: 30
