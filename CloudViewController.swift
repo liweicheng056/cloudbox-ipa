@@ -217,10 +217,12 @@ final class CloudViewController: UIViewController,
             if let sz = try? f.resourceValues(forKeys: [.fileSizeKey]).fileSize { used += Int64(sz) }
         }
         var total: Int64 = 0
+        var avail: Int64 = 0
         if let vals = try? storageDir.resourceValues(forKeys: [.volumeTotalCapacityKey, .volumeAvailableCapacityKey]) {
-            total = Int64(vals.volumeTotalCapacityKey ?? 0)
+            total = Int64(vals.volumeTotalCapacity ?? 0)
+            avail = Int64(vals.volumeAvailableCapacity ?? 0)
         }
-        storageLabel.text = "已用 \(formatBytes(used)) / 总 \(formatBytes(total))"
+        storageLabel.text = "云盘 \(formatBytes(used)) · 剩余 \(formatBytes(avail)) / 总 \(formatBytes(total))"
     }
 
     private func formatBytes(_ b: Int64) -> String {
